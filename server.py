@@ -65,6 +65,15 @@ class ChangePasswordModel(BaseModel):
     old_password: str
     new_password: str
 
+# -------------------------------------------------------
+# NUEVO MODELO PARA CAMBIO DE CONTRASEÑA POR ADMIN
+# -------------------------------------------------------
+class AdminChangePasswordModel(BaseModel):
+    admin_username: str
+    admin_password: str
+    target_username: str
+    new_password: str
+
 
 # -------------------------------------------------------
 # RUTA DE PRUEBA
@@ -117,7 +126,7 @@ def add_user(data: AddUserModel):
 
 
 # -------------------------------------------------------
-# CAMBIO DE CONTRASEÑA (usuario normal)
+# CAMBIO DE CONTRASEÑA (usuario normal) - ESTA YA NO SE USARÁ EN EXCEL
 # -------------------------------------------------------
 @app.post("/change_password")
 def change_password(data: ChangePasswordModel):
@@ -138,6 +147,45 @@ def change_password(data: ChangePasswordModel):
     conn.close()
 
     return {"status": "ok", "msg": "Contraseña actualizada"}
+
+
+# -------------------------------------------------------
+# RUTA NUEVA: CAMBIO DE CONTRASEÑA POR ADMIN (DOBLE VERIFICACIÓN)
+# -------------------------------------------------------
+@app.post("/admin_change_password")
+def admin_change_password(data: AdminChangePasswordModel):
+    conn = get_conn()
+    cur = conn.cursor()
+
+    # 1. Verificar las credenciales y el rol del jefe/admin
+    cur.execute("SELECT password_hash, role FROM users WHERE username=%s",
+                (data.admin_username,))
+    admin_row = cur.fetchone()
+
+    if not admin_row or not check_password_hash(admin_row["password_hash"], data.admin_password):
+        conn.close()
+        raise HTTPException(status_code=401, detail="Credenciales de Administrador incorrectas")
+
+    if admin_row["role"] != "admin":
+        conn.close()
+        raise HTTPException(status_code=403, detail="Permiso denegado. Solo el rol 'admin' puede usar esta función.")
+
+    # 2. Verificar que el usuario a cambiar exista
+    cur.execute("SELECT username FROM users WHERE username=%s",
+                (data.target_username,))
+    if not cur.fetchone():
+        conn.close()
+        raise HTTPException(status_code=404, detail="El usuario a cambiar no existe")
+        
+    # 3. Realizar el cambio de contraseña
+    new_hashed_password = generate_password_hash(data.new_password)
+    cur.execute("UPDATE users SET password_hash=%s WHERE username=%s",
+                (new_hashed_password, data.target_username))
+
+    conn.commit()
+    conn.close()
+
+    return {"status": "ok", "msg": f"Contraseña de {data.target_username} actualizada por el administrador"}
 
 
 # -------------------------------------------------------
