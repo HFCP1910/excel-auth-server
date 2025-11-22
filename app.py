@@ -14,7 +14,6 @@ def init_db():
     conn = sqlite3.connect(DB)
     c = conn.cursor()
 
-    # Crea tabla si no existe
     c.execute("""
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
@@ -24,7 +23,6 @@ def init_db():
         )
     """)
 
-    # Insertar usuarios demo si no existen
     c.execute("SELECT COUNT(*) FROM users")
     count = c.fetchone()[0]
 
@@ -41,6 +39,19 @@ def init_db():
 
 # Ejecutar al iniciar
 init_db()
+
+# -----------------------------
+#  VERIFICACIÓN / RECREACIÓN AUTOMÁTICA DE DB EN RENDER
+# -----------------------------
+print("🔄 Verificando estado de la base de datos en Render...")
+
+if os.path.exists(DB):
+    print("✔ La base de datos users.db EXISTE en Render.")
+else:
+    print("⚠ No existe users.db en Render. Creando base nueva...")
+    init_db()
+    print("✔ Base de datos creada correctamente.")
+
 
 # -----------------------------
 #  FUNCIONES AUXILIARES
@@ -175,4 +186,3 @@ def set_user_sheets():
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port)
-
