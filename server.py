@@ -5,7 +5,7 @@ from psycopg2.extras import RealDictCursor
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # -------------------------------------------------------
-# CONFIG: CADENA DE CONEXIÓN A RENDER POSTGRES
+# CONFIG: CADENA DE CONEXIÓN A POSTGRES EN RENDER
 # -------------------------------------------------------
 DB_URL = "postgresql://excel_auth_db_user:TU_CONTRASEÑA@dpg-d4gv6jjuibrs73d9g890-a.oregon-postgres.render.com/excel_auth_db"
 
@@ -34,7 +34,7 @@ def init_db():
     """)
     conn.commit()
 
-    # Crear usuarios por defecto si no existen
+    # Usuario administrador por defecto
     cur.execute("SELECT * FROM users WHERE username='jefe'")
     if not cur.fetchone():
         cur.execute(
@@ -95,7 +95,7 @@ def login(data: LoginModel):
 
 
 # -------------------------------------------------------
-# AÑADIR USUARIO (solo para administrador en formulario Excel)
+# AÑADIR USUARIO (solo admin)
 # -------------------------------------------------------
 @app.post("/add_user")
 def add_user(data: AddUserModel):
