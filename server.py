@@ -7,7 +7,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 # -------------------------------------------------------
 # CONFIG: CADENA DE CONEXIÓN A POSTGRES EN RENDER
 # -------------------------------------------------------
-DB_URL = "postgresql://excel_auth_db_user:TU_CONTRASEÑA@dpg-d4gv6jjuibrs73d9g890-a.oregon-postgres.render.com/excel_auth_db"
+DB_URL = "postgresql://excel_auth_db_user:Gj9KGMeAGrYwbs2A48nhA78FVWCJtgzB@dpg-d4gv6jjuibrs73d9g890-a.oregon-postgres.render.com/excel_auth_db"
 
 app = FastAPI()
 
